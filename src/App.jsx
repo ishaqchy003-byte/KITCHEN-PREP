@@ -274,9 +274,8 @@ function SelectInput({ label, children, ...props }) {
 
 const NAV_ITEMS = [
   { key: "leftovers", label: "Current Leftovers" },
-  { key: "assign", label: "Assign Prep" },
-  { key: "staff", label: "Update Prep" },
-  { key: "setup", label: "Setup" },
+  { key: "staffPortal", label: "Staff Portal" },
+  { key: "adminPortal", label: "Admin Portal" },
 ];
 
 function PageShell({ branch, title, subtitle, onBack, children, activePage, onNavigate }) {
@@ -375,7 +374,7 @@ function AccessGate({ title, description, expectedCode, onUnlock, children }) {
             placeholder="Enter code"
             type="password"
           />
-          <Button type="submit">Unlock</Button>
+          <Button type="submit">Enter</Button>
         </form>
         {error && <p className="errorText">{error}</p>}
         {children}
@@ -487,27 +486,20 @@ function BranchDashboard({ branch, onOpenPage, onSwitchBranch }) {
     {
       key: "leftovers",
       title: "Current Leftovers",
-      text: "View today’s leftover prep",
+      text: "View current prep without code",
       tone: "green",
     },
     {
-      key: "staff",
-      title: "Update Prep",
-      text: "Update quantities and prep progress",
+      key: "staffPortal",
+      title: "Staff Portal",
+      text: "Update prep and view assigned prep",
       tone: "blue",
     },
-  ];
-
-  const menuCards = [
     {
-      key: "assign",
-      title: "Assign Prep",
-      text: "Manager assigns what needs preparing",
-    },
-    {
-      key: "setup",
-      title: "Setup",
-      text: "Manage items, units, branches and codes",
+      key: "adminPortal",
+      title: "Admin Portal",
+      text: "Assign prep and manage setup",
+      tone: "purple",
     },
   ];
 
@@ -523,7 +515,7 @@ function BranchDashboard({ branch, onOpenPage, onSwitchBranch }) {
           className="boxHamburgerBtn"
           onClick={() => setMenuOpen((value) => !value)}
           type="button"
-          aria-label="Open setup menu"
+          aria-label="Open menu"
           aria-expanded={menuOpen}
         >
           ☰
@@ -531,7 +523,7 @@ function BranchDashboard({ branch, onOpenPage, onSwitchBranch }) {
 
         {menuOpen && (
           <div className="boxMenuPanel">
-            {menuCards.map((card) => (
+            {mainCards.map((card) => (
               <button key={card.key} onClick={() => goToPage(card.key)} type="button">
                 <strong>{card.title}</strong>
                 <small>{card.text}</small>
@@ -602,28 +594,133 @@ function getDisplaySections(branch) {
     .filter((section) => section.items.length);
 }
 
-function CurrentLeftoversPage({ branch, onBack, unlocked, onUnlock, onNavigate }) {
-  const [activeSection, setActiveSection] = useState("all");
+function PortalCardList({ cards }) {
+  return (
+    <div className="landingList portalList">
+      {cards.map((card) => (
+        <button
+          key={card.key}
+          className={`homeOption ${card.tone || "blue"}`}
+          onClick={card.onClick}
+          type="button"
+        >
+          <span>
+            <strong>{card.title}</strong>
+            <small>{card.text}</small>
+          </span>
+          <b>›</b>
+        </button>
+      ))}
+    </div>
+  );
+}
 
+function StaffPortalPage({ branch, onBack, unlocked, onUnlock, onNavigate }) {
   if (!unlocked) {
     return (
       <PageShell
         branch={branch}
-        title="Current Leftovers"
-        subtitle="Manager access required"
+        title="Staff Portal"
+        subtitle="Staff access required"
         onBack={onBack}
-        activePage="leftovers"
+        activePage="staffPortal"
         onNavigate={onNavigate}
       >
         <AccessGate
-          title="Manager Code"
-          description="Enter the manager code to view current leftover prep."
-          expectedCode={branch.codes.manager}
+          title="Staff Code"
+          description="Enter the staff code to update prep and view assigned prep."
+          expectedCode={branch.codes.staff}
           onUnlock={onUnlock}
         />
       </PageShell>
     );
   }
+
+  return (
+    <PageShell
+      branch={branch}
+      title="Staff Portal"
+      subtitle="Update prep or view assigned prep"
+      onBack={onBack}
+      activePage="staffPortal"
+      onNavigate={onNavigate}
+    >
+      <PortalCardList
+        cards={[
+          {
+            key: "staffUpdate",
+            title: "Update Prep",
+            text: "Update leftover quantities, units and prep dates",
+            tone: "blue",
+            onClick: () => onNavigate("staffUpdate"),
+          },
+          {
+            key: "staffAssigned",
+            title: "Assigned Prep",
+            text: "View and update today’s assigned prep tasks",
+            tone: "green",
+            onClick: () => onNavigate("staffAssigned"),
+          },
+        ]}
+      />
+    </PageShell>
+  );
+}
+
+function AdminPortalPage({ branch, onBack, unlocked, onUnlock, onNavigate }) {
+  if (!unlocked) {
+    return (
+      <PageShell
+        branch={branch}
+        title="Admin Portal"
+        subtitle="Admin access required"
+        onBack={onBack}
+        activePage="adminPortal"
+        onNavigate={onNavigate}
+      >
+        <AccessGate
+          title="Admin Code"
+          description="Enter the admin/setup code to assign prep and manage setup."
+          expectedCode={branch.codes.setup}
+          onUnlock={onUnlock}
+        />
+      </PageShell>
+    );
+  }
+
+  return (
+    <PageShell
+      branch={branch}
+      title="Admin Portal"
+      subtitle="Assign prep or manage setup"
+      onBack={onBack}
+      activePage="adminPortal"
+      onNavigate={onNavigate}
+    >
+      <PortalCardList
+        cards={[
+          {
+            key: "assign",
+            title: "Assign Prep",
+            text: "Decide how much needs preparing today",
+            tone: "purple",
+            onClick: () => onNavigate("assign"),
+          },
+          {
+            key: "setup",
+            title: "Setup",
+            text: "Manage categories, items, units, branches and codes",
+            tone: "amber",
+            onClick: () => onNavigate("setup"),
+          },
+        ]}
+      />
+    </PageShell>
+  );
+}
+
+function CurrentLeftoversPage({ branch, onBack, onNavigate }) {
+  const [activeSection, setActiveSection] = useState("all");
 
   const sections = getDisplaySections(branch);
   const visibleSections = activeSection === "all" ? sections : sections.filter((section) => section.id === activeSection);
@@ -632,7 +729,7 @@ function CurrentLeftoversPage({ branch, onBack, unlocked, onUnlock, onNavigate }
     <PageShell
       branch={branch}
       title="Current Leftovers"
-      subtitle="View what prep is left from the last batch"
+      subtitle="View current prep without code"
       onBack={onBack}
       activePage="leftovers"
       onNavigate={onNavigate}
@@ -684,9 +781,9 @@ function CurrentLeftoversPage({ branch, onBack, unlocked, onUnlock, onNavigate }
         </section>
       ))}
 
-      {!sections.length && <EmptyState title="No active items" text="Add categories and items from Prep List Setup." />}
+      {!sections.length && <EmptyState title="No active items" text="Add categories and items from Setup." />}
 
-      <div className="infoNote">Prep Date shows when the leftover batch was last updated.</div>
+      <div className="infoNote">Current Leftovers is open for both manager and staff viewing. No code is required on this page.</div>
     </PageShell>
   );
 }
@@ -736,7 +833,7 @@ function AssignPrepPage({ branch, updateBranch, onBack, unlocked, onUnlock, onNa
         title="Assign Prep"
         subtitle="Manager access required"
         onBack={onBack}
-        activePage="assign"
+        activePage="adminPortal"
         onNavigate={onNavigate}
       >
         <AccessGate
@@ -831,7 +928,7 @@ function AssignPrepPage({ branch, updateBranch, onBack, unlocked, onUnlock, onNa
       title="Assign Prep"
       subtitle="Decide how much to prepare and assign staff"
       onBack={onBack}
-      activePage="assign"
+      activePage="adminPortal"
       onNavigate={onNavigate}
     >
       <div className="toolbarLine">
@@ -876,11 +973,11 @@ function AssignPrepPage({ branch, updateBranch, onBack, unlocked, onUnlock, onNa
   );
 }
 
-function StaffUpdatePage({ branch, updateBranch, onBack, unlocked, onUnlock, onNavigate }) {
+function StaffUpdatePage({ branch, updateBranch, onBack, unlocked, onUnlock, onNavigate, initialTab = "leftovers", pageTitle = "Update Prep", pageSubtitle = "Update leftovers from last batch" }) {
   const activeItems = flattenItems(branch);
   const activeUnits = branch.units.filter((unit) => unit.active);
   const [leftoverDrafts, setLeftoverDrafts] = useState({});
-  const [activeTab, setActiveTab] = useState("leftovers");
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   useEffect(() => {
     const draft = {};
@@ -891,19 +988,23 @@ function StaffUpdatePage({ branch, updateBranch, onBack, unlocked, onUnlock, onN
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branch.id, branch.leftovers]);
 
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
   if (!unlocked) {
     return (
       <PageShell
         branch={branch}
-        title="Update Prep"
-        subtitle="Kitchen staff access required"
+        title={pageTitle}
+        subtitle="Staff access required"
         onBack={onBack}
-        activePage="staff"
+        activePage="staffPortal"
         onNavigate={onNavigate}
       >
         <AccessGate
           title="Staff Code"
-          description="Enter the staff code to update leftover quantity and task progress."
+          description="Enter the staff code to use the staff portal."
           expectedCode={branch.codes.staff}
           onUnlock={onUnlock}
         />
@@ -1020,10 +1121,10 @@ function StaffUpdatePage({ branch, updateBranch, onBack, unlocked, onUnlock, onN
   return (
     <PageShell
       branch={branch}
-      title="Update Prep"
-      subtitle="Update leftovers from last batch"
+      title={pageTitle}
+      subtitle={pageSubtitle}
       onBack={onBack}
-      activePage="staff"
+      activePage="staffPortal"
       onNavigate={onNavigate}
     >
       <div className="summaryCards">
@@ -1124,7 +1225,7 @@ function SetupPage({ appData, setAppData, branch, updateBranch, onBack, unlocked
         title="Setup"
         subtitle="Setup/admin access required"
         onBack={onBack}
-        activePage="setup"
+        activePage="adminPortal"
         onNavigate={onNavigate}
       >
         <AccessGate
@@ -1276,7 +1377,7 @@ function SetupPage({ appData, setAppData, branch, updateBranch, onBack, unlocked
       title="Setup"
       subtitle="Update the system without changing code: categories, items, units, branches and codes."
       onBack={onBack}
-      activePage="setup"
+      activePage="adminPortal"
       onNavigate={onNavigate}
     >
       <div className="tabRow wrapTabs">
@@ -1440,7 +1541,7 @@ function SetupPage({ appData, setAppData, branch, updateBranch, onBack, unlocked
   );
 }
 
-export default function App() {
+function App() {
   const [appData, setAppData] = useState(loadData);
   const [selectedBranchId, setSelectedBranchId] = useState(null);
   const [page, setPage] = useState("branchEntry");
@@ -1487,8 +1588,62 @@ export default function App() {
       <CurrentLeftoversPage
         branch={selectedBranch}
         onBack={() => setPage("dashboard")}
-        unlocked={unlocked.manager}
-        onUnlock={() => setUnlocked((prev) => ({ ...prev, manager: true }))}
+        onNavigate={setPage}
+      />
+    );
+  }
+
+  if (page === "staffPortal") {
+    return (
+      <StaffPortalPage
+        branch={selectedBranch}
+        onBack={() => setPage("dashboard")}
+        unlocked={unlocked.staff}
+        onUnlock={() => setUnlocked((prev) => ({ ...prev, staff: true }))}
+        onNavigate={setPage}
+      />
+    );
+  }
+
+  if (page === "staffUpdate") {
+    return (
+      <StaffUpdatePage
+        branch={selectedBranch}
+        updateBranch={updateBranch}
+        onBack={() => setPage("staffPortal")}
+        unlocked={unlocked.staff}
+        onUnlock={() => setUnlocked((prev) => ({ ...prev, staff: true }))}
+        onNavigate={setPage}
+        initialTab="leftovers"
+        pageTitle="Update Prep"
+        pageSubtitle="Update leftover quantities, units and prep dates"
+      />
+    );
+  }
+
+  if (page === "staffAssigned") {
+    return (
+      <StaffUpdatePage
+        branch={selectedBranch}
+        updateBranch={updateBranch}
+        onBack={() => setPage("staffPortal")}
+        unlocked={unlocked.staff}
+        onUnlock={() => setUnlocked((prev) => ({ ...prev, staff: true }))}
+        onNavigate={setPage}
+        initialTab="tasks"
+        pageTitle="Assigned Prep"
+        pageSubtitle="View and update today’s assigned prep tasks"
+      />
+    );
+  }
+
+  if (page === "adminPortal") {
+    return (
+      <AdminPortalPage
+        branch={selectedBranch}
+        onBack={() => setPage("dashboard")}
+        unlocked={unlocked.setup}
+        onUnlock={() => setUnlocked((prev) => ({ ...prev, setup: true, manager: true }))}
         onNavigate={setPage}
       />
     );
@@ -1499,22 +1654,9 @@ export default function App() {
       <AssignPrepPage
         branch={selectedBranch}
         updateBranch={updateBranch}
-        onBack={() => setPage("dashboard")}
-        unlocked={unlocked.manager}
+        onBack={() => setPage("adminPortal")}
+        unlocked={unlocked.setup || unlocked.manager}
         onUnlock={() => setUnlocked((prev) => ({ ...prev, manager: true }))}
-        onNavigate={setPage}
-      />
-    );
-  }
-
-  if (page === "staff") {
-    return (
-      <StaffUpdatePage
-        branch={selectedBranch}
-        updateBranch={updateBranch}
-        onBack={() => setPage("dashboard")}
-        unlocked={unlocked.staff}
-        onUnlock={() => setUnlocked((prev) => ({ ...prev, staff: true }))}
         onNavigate={setPage}
       />
     );
@@ -1527,7 +1669,7 @@ export default function App() {
         setAppData={setAppData}
         branch={selectedBranch}
         updateBranch={updateBranch}
-        onBack={() => setPage("dashboard")}
+        onBack={() => setPage("adminPortal")}
         unlocked={unlocked.setup}
         onUnlock={() => setUnlocked((prev) => ({ ...prev, setup: true }))}
         onNavigate={setPage}
@@ -1537,3 +1679,5 @@ export default function App() {
 
   return null;
 }
+
+export default App;

@@ -456,14 +456,19 @@ body {
 
 .mobileWorkspace {
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   margin: 0 auto;
-  padding: 10px;
+  padding: 14px;
   background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mobileShell {
-  width: min(480px, 100%);
+  position: relative;
+  width: min(420px, 100%);
   margin: 0 auto;
   background: #ffffff;
   border: 1px solid var(--line);
@@ -500,6 +505,7 @@ body {
   line-height: 1.15;
   letter-spacing: -0.02em;
   color: #ffffff;
+  text-align: center;
 }
 
 .mobileTitleBlock p {
@@ -507,6 +513,7 @@ body {
   font-size: 11px;
   line-height: 1.25;
   color: rgba(255, 255, 255, 0.78);
+  text-align: center;
 }
 
 .topDatePill {
@@ -552,7 +559,7 @@ body {
 }
 
 .mobileContent {
-  padding: 12px;
+  padding: 14px;
 }
 
 /* Make all existing sections lighter and smaller for phone usage */
@@ -1299,6 +1306,8 @@ select {
   font-size: 9px !important;
 }
 
+.mobileTitleBlock small { display:block; text-align:center; color: rgba(255,255,255,0.9); font-size: 10px; margin-top: 4px; font-weight: 800; }
+
 .topBarSpacer {
   width: 38px;
   height: 38px;
@@ -1332,19 +1341,19 @@ select {
 }
 
 .gateCenter {
-  min-height: calc(min(92dvh, 760px) - 96px);
+  min-height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 0 28px;
+  padding: 4px 0;
 }
 
 .gateCenter .gateCard {
   width: 100%;
-  max-width: 360px;
+  max-width: 356px;
   margin: 0 auto !important;
   text-align: center;
-  padding: 24px 16px !important;
+  padding: 22px 16px !important;
   border-radius: 18px !important;
 }
 
@@ -1354,7 +1363,7 @@ select {
 
 .gateCenter .gateForm input,
 .gateCenter .gateForm .btn {
-  height: 40px;
+  height: 42px;
   font-size: 12px;
 }
 
@@ -1446,6 +1455,6 @@ select {
   }
 
   .gateCenter {
-    min-height: calc(100dvh - 124px);
+    min-height: 250px;
   }
 }
